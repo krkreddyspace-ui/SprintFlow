@@ -1,0 +1,79 @@
+spring:
+  application:
+    name: sprintflow-backend
+  profiles:
+    active: dev
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+server:
+  port: 8080
+  error:
+    include-message: always
+    include-binding-errors: always
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+---
+# -------------------------------------------------------------
+# Development Profile (PostgreSQL with Docker)
+# -------------------------------------------------------------
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/sprintflow_db}
+    username: ${SPRING_DATASOURCE_USERNAME:sprintflow_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:sprintflow_password}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      pool-name: SprintFlowHikariPool
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+---
+# -------------------------------------------------------------
+# Test / Offline Profile (H2 In-Memory)
+# -------------------------------------------------------------
+spring:
+  config:
+    activate:
+      on-profile: test
+
+  datasource:
+    url: jdbc:h2:mem:sprintflow_test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ""
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    clean-disabled: false
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
